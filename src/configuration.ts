@@ -69,6 +69,10 @@ const CONFIG_VALIDATION_SCHEMA = Joi.object({
     path: Joi.string().required(),
     type: Joi.string().valid('named').required(),
   }),
+  storage: Joi.object({
+    data: Joi.string().required(),
+    cache: Joi.string().required(),
+  }).default({}),
 });
 
 export default () => {
@@ -76,13 +80,17 @@ export default () => {
     readFileSync(resolve(process.cwd(), process.env.CONFIG_FILE_PATH || YAML_CONFIG_FILENAME), 'utf8'),
   ) as ConfigType;
 
+  config.storage = {
+    data: process.env.DATA_PATH,
+    cache: process.env.CACHE_PATH,
+    ...config.storage,
+  };
+
   const valid = CONFIG_VALIDATION_SCHEMA.validate(config, { abortEarly: false, });
   if (valid.error) {
     console.error('error while validating config', valid.error.details);
     throw new Error('invalid config');
   }
-
-  console.log('get config');
 
   return config;
 };

@@ -15,6 +15,8 @@ import { ConfigDatabaseType } from "./types/config.type.js";
 
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BaseTablesMigration } from "./database/migrations/1719665254677-base-tables.migration.js";
+import { TypeOrmModuleOptions } from "@nestjs/typeorm/dist/interfaces/typeorm-options.interface.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -28,12 +30,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => {
         const databaseConfig = configService.get<ConfigDatabaseType>('database');
-        const baseConfig = {
+        const baseConfig: TypeOrmModuleOptions = {
           entities: [`${__dirname}/**/*.entity{.ts,.js}`],
-          migrations: [`${__dirname}/**/*.migration{.ts,.js}`],
+          migrations: [BaseTablesMigration],
+          migrationsRun: true,
           synchronize: false,
+          logging: ['query', 'error']
         };
 
         if (databaseConfig.type === 'sqlite') {
@@ -41,7 +45,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
             type: databaseConfig.type,
             database: databaseConfig.database,
             ...baseConfig,
-          };
+          } as TypeOrmModuleOptions;
         }
 
         if (databaseConfig.type === 'cockroachdb') {
@@ -56,9 +60,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
               rejectUnauthorized: databaseConfig.ssl.rejectUnauthorized,
             } : undefined,
             ...baseConfig,
-          };
+          } as TypeOrmModuleOptions;
         }
-      }
+      },
     }),
     AdminModule
   ],

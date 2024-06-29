@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { UploadModule } from './upload/upload.module.js';
+import { AdminImagesModule } from './images/admin-images.module.js';
 
 @Module({
-  imports: [UploadModule]
+  imports: [AdminImagesModule]
 })
 export class AdminModule {}

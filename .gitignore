@@ -329,3 +329,9 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,intellij,node
+
+# CUSTOM
+/example-data/cache
+/example-data/database.sqlite3
+/example-data/data
+/config/typeorm.js

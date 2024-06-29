@@ -33,6 +33,12 @@ export class Image {
   mimeType: string;
 
   @Column({
+    name: 'md5',
+    length: '32',
+  })
+  md5: string;
+
+  @Column({
     name: 'has_alpha',
   })
   hasAlpha: boolean;

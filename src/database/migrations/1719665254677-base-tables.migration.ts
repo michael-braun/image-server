@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 import { getDataType } from "./utils/data-type.mapper.js";
 
-export class BaseTables implements MigrationInterface {
+export class BaseTablesMigration implements MigrationInterface {
     name = 'BaseTables1719665254677'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
@@ -40,6 +40,11 @@ export class BaseTables implements MigrationInterface {
                 name: 'mime_type',
                 type: 'varchar',
                 length: '128',
+                isNullable: false,
+            }, {
+                name: 'md5',
+                type: 'varchar',
+                length: '32',
                 isNullable: false,
             }, {
                 name: 'has_alpha',

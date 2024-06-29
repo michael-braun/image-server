@@ -12,6 +12,7 @@ export type ConfigType = {
   auth: ConfigAuthType;
   images: ConfigImagesType;
   database: ConfigDatabaseType;
+  storage: ConfigStorageType;
 };
 
 type ConfigAuthType = ConfigStaticAuthType;
@@ -59,4 +60,9 @@ type ConfigCockroachdbDatabaseType = {
   ssl?: {
     rejectUnauthorized?: boolean;
   };
+};
+
+export type ConfigStorageType = {
+  data: string;
+  cache: string;
 };
