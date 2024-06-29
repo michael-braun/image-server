@@ -45,6 +45,30 @@ const CONFIG_VALIDATION_SCHEMA = Joi.object({
       })
     )
   }),
+  database: Joi.alternatives().try(
+    Joi.object({
+      type: Joi.string().valid('sqlite').required(),
+      database: Joi.string().required(),
+    }),
+    Joi.object({
+      type: Joi.string().valid('cockroachdb').required(),
+      host: Joi.string().required(),
+      username: Joi.string().required(),
+      password: Joi.string().required(),
+      database: Joi.string().required(),
+      port: Joi.number(),
+      ssl: Joi.object({
+        rejectUnauthorized: Joi.boolean(),
+        ca: Joi.string(),
+        key: Joi.string(),
+        cert: Joi.string(),
+      }),
+    }),
+  ),
+  naming: Joi.object({
+    path: Joi.string().required(),
+    type: Joi.string().valid('named').required(),
+  }),
 });
 
 export default () => {

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -10,6 +11,12 @@ import configuration from "./configuration.js";
 import { APP_GUARD } from "@nestjs/core";
 import { RolesGuard } from "./auth/roles/roles.guard.js";
 import { AuthGuard } from "./auth/auth.guard.js";
+import { ConfigDatabaseType } from "./types/config.type.js";
+
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 @Module({
   imports: [
@@ -18,6 +25,40 @@ import { AuthGuard } from "./auth/auth.guard.js";
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const databaseConfig = configService.get<ConfigDatabaseType>('database');
+        const baseConfig = {
+          entities: [`${__dirname}/**/*.entity{.ts,.js}`],
+          migrations: [`${__dirname}/**/*.migration{.ts,.js}`],
+          synchronize: false,
+        };
+
+        if (databaseConfig.type === 'sqlite') {
+          return {
+            type: databaseConfig.type,
+            database: databaseConfig.database,
+            ...baseConfig,
+          };
+        }
+
+        if (databaseConfig.type === 'cockroachdb') {
+          return {
+            type: databaseConfig.type,
+            database: databaseConfig.database,
+            host: databaseConfig.host,
+            username: databaseConfig.username,
+            password: databaseConfig.password,
+            port: databaseConfig.port ?? 26257,
+            ssl: databaseConfig.ssl ? {
+              rejectUnauthorized: databaseConfig.ssl.rejectUnauthorized,
+            } : undefined,
+            ...baseConfig,
+          };
+        }
+      }
     }),
     AdminModule
   ],

@@ -11,6 +11,7 @@ enum ImageConversion {
 export type ConfigType = {
   auth: ConfigAuthType;
   images: ConfigImagesType;
+  database: ConfigDatabaseType;
 };
 
 type ConfigAuthType = ConfigStaticAuthType;
@@ -39,4 +40,23 @@ export type ConfigImagePresetType = {
   algorithm: ImageSizingAlgorithm;
   conversion: ImageConversion;
   cached: boolean;
+};
+
+export type ConfigDatabaseType = ConfigSqliteDatabaseType | ConfigCockroachdbDatabaseType;
+
+type ConfigSqliteDatabaseType = {
+  type: 'sqlite';
+  database: string;
+};
+
+type ConfigCockroachdbDatabaseType = {
+  type: 'cockroachdb';
+  host: string;
+  username: string;
+  password: string;
+  database: string;
+  port?: number;
+  ssl?: {
+    rejectUnauthorized?: boolean;
+  };
 };
