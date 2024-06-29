@@ -1,0 +1,41 @@
+auth:
+  type: 'static'
+  secret: '380bdc8fZ97edh49fblb97fp609n55dc70ae'
+  users:
+    - id: '86f01463-2952-4a7c-8d81-094561d110f0'
+      username: admin
+      password: admin
+      grants:
+        - manage_images
+images:
+  presets:
+    - alias: small
+      width: 256
+      height: 256
+      algorithm: contain
+      conversion: on_demand
+      cached: true
+    - alias: medium
+      width: 512
+      height: 512
+      algorithm: contain
+      conversion: on_demand
+      cached: true
+    - alias: large
+      width: 1024
+      height: 1024
+      algorithm: contain
+      conversion: on_demand
+      cached: true
+    - alias: xlarge
+      width: 2048
+      height: 2048
+      algorithm: contain
+      conversion: on_demand
+      cached: true
+    - alias: xxlarge
+      width: 4096
+      height: 4096
+      algorithm: contain
+      conversion: on_demand
+      cached: true
