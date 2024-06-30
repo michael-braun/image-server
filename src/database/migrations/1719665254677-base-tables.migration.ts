@@ -109,6 +109,17 @@ export class BaseTablesMigration implements MigrationInterface {
                 isPrimary: true,
                 primaryKeyConstraintName: 'pk__image_cache',
             }, {
+                name: 'mime_type',
+                type: 'varchar',
+                length: '128',
+                isNullable: false,
+                isPrimary: true,
+                primaryKeyConstraintName: 'pk__image_cache',
+            }, {
+                name: 'file_size',
+                type: 'integer',
+                isNullable: false,
+            }, {
                 name: 'md5',
                 type: 'varchar',
                 length: '32',

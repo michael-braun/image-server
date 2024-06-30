@@ -43,6 +43,20 @@ export class ImageCache {
   })
   imagePreset!: ImagePreset;
 
+  @Column({
+    type: 'varchar',
+    length: 128,
+    name: 'mime_type',
+    primary: true,
+    primaryKeyConstraintName: 'pk__image_cache',
+  })
+  mimeType: string;
+
+  @Column({
+    name: 'file_size',
+  })
+  fileSize: number;
+
   @Column({ type: 'varchar', length: 32 })
   md5: string;
 

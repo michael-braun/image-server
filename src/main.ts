@@ -7,9 +7,6 @@ async function bootstrap() {
     bodyParser: true,
     rawBody: true,
   });
-  // app.use('/admin/images/_actions/upload', bodyParser.raw({
-    // limit: '1500000000',
-  // }));
   await app.listen(3000);
 }
 bootstrap();

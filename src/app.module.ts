@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -11,12 +11,17 @@ import configuration from "./configuration.js";
 import { APP_GUARD } from "@nestjs/core";
 import { RolesGuard } from "./auth/roles/roles.guard.js";
 import { AuthGuard } from "./auth/auth.guard.js";
-import { ConfigDatabaseType } from "./types/config.type.js";
+import { ConfigDatabaseType, ConfigImagePresetType } from "./types/config.type.js";
 
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BaseTablesMigration } from "./database/migrations/1719665254677-base-tables.migration.js";
 import { TypeOrmModuleOptions } from "@nestjs/typeorm/dist/interfaces/typeorm-options.interface.js";
+import { ImageModule } from './image/image.module.js';
+import { Image } from "./database/entities/image.entity.js";
+import { ImagePreset } from "./database/entities/image-preset.entity.js";
+import { Repository } from "typeorm";
+import { CacheModule } from './cache/cache.module.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -64,7 +69,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
         }
       },
     }),
-    AdminModule
+    AdminModule,
+    ImageModule,
+    TypeOrmModule.forFeature([ImagePreset]),
+    CacheModule,
   ],
   controllers: [AppController],
   providers: [
@@ -80,4 +88,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
   ],
 })
 export class AppModule {
+  constructor(
+    @InjectRepository(ImagePreset)
+    private imagePresetsRepository: Repository<ImagePreset>,
+    private readonly configService: ConfigService,
+  ) {
+    const imagePresets = configService.get<Array<ConfigImagePresetType>>('images.presets');
+
+    imagePresets.forEach((imagePreset) => {
+      this.imagePresetsRepository.save({
+        id: imagePreset.alias,
+      });
+    });
+  }
 }

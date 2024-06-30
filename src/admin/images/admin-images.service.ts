@@ -11,6 +11,7 @@ import sharp, { FormatEnum } from "sharp";
 import crypto from 'node:crypto';
 import { Slug } from "../../database/entities/slug.entity.js";
 import slugify from "slugify";
+import { getFormatInfoBySharpFormat } from "../../utils/format-info.utils.js";
 
 @Injectable()
 export class AdminImagesService {
@@ -55,7 +56,7 @@ export class AdminImagesService {
     const metadata = await sharp(buffer)
       .metadata();
 
-    const formatInfo = this.getFormatInfo(metadata.format);
+    const formatInfo = getFormatInfoBySharpFormat(metadata.format);
 
     const filePath = path.resolve(basePath, `${id}.${formatInfo.extension}`);
 
@@ -102,24 +103,6 @@ export class AdminImagesService {
     }
 
     return Buffer.concat(buffers);
-  }
-
-  private getFormatInfo(format: keyof FormatEnum): { mimeType: string; extension: string; } {
-    switch (format) {
-      case 'jpg':
-      case 'jpeg':
-        return {
-          mimeType: 'image/jpeg',
-          extension: 'jpg',
-        };
-      case 'png':
-        return {
-          mimeType: 'image/png',
-          extension: 'png',
-        };
-      default:
-        throw new Error('unsupported file type');
-    }
   }
 
   private getImageDirectory(creationTime: Date) {

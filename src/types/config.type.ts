@@ -13,6 +13,8 @@ export type ConfigType = {
   images: ConfigImagesType;
   database: ConfigDatabaseType;
   storage: ConfigStorageType;
+  naming: ConfigNamingType;
+  caching: ConfigCachingType;
 };
 
 type ConfigAuthType = ConfigStaticAuthType;
@@ -66,3 +68,22 @@ export type ConfigStorageType = {
   data: string;
   cache: string;
 };
+
+export type ConfigNamingType = {
+  type: 'named';
+  path: string;
+};
+
+export type ConfigCachingType = {
+  memory: {
+    enabled: boolean;
+    caches: {
+      resolve_path: ConfigMemoryCachingSingleType;
+      image_data: ConfigMemoryCachingSingleType;
+    };
+  };
+};
+
+export type ConfigMemoryCachingSingleType = {
+  ttl: number | 'Infinity';
+}

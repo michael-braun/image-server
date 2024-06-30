@@ -73,6 +73,30 @@ const CONFIG_VALIDATION_SCHEMA = Joi.object({
     data: Joi.string().required(),
     cache: Joi.string().required(),
   }).default({}),
+  caching: Joi.object({
+    memory: Joi.alternatives().try(
+      Joi.object({
+        enabled: Joi.boolean().valid(false),
+      }),
+      Joi.object({
+        enabled: Joi.boolean().valid(true),
+        caches: Joi.object({
+          resolve_path: Joi.object({
+            ttl: Joi.alternatives().try(
+              Joi.string().valid('Infinity'),
+              Joi.number().positive(),
+            ),
+          }),
+          image_data: Joi.object({
+            ttl: Joi.alternatives().try(
+              Joi.string().valid('Infinity'),
+              Joi.number().positive(),
+            ),
+          }),
+        }),
+      }),
+    ),
+  }),
 });
 
 export default () => {
