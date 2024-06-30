@@ -39,3 +39,27 @@ images:
       algorithm: contain
       conversion: on_demand
       cached: true
+
+database:
+  type: sqlite
+  database: ./example-data/database.sqlite3
+
+naming:
+  type: named
+  path: '##name##_##preset_alias##.##ext##'
+
+storage:
+
+caching:
+  memory:
+    enabled: true
+    caches:
+      resolve_path:
+        ttl: 60000
+      image_data:
+        ttl: Infinity
+  client:
+    enabled: true
+    options:
+      max_age: 300000
+      s_max_age: 3600000
