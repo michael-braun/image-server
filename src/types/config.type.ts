@@ -82,6 +82,15 @@ export type ConfigCachingType = {
       image_data: ConfigMemoryCachingSingleType;
     };
   };
+  client: {
+    enabled: boolean;
+    options: ConfigCachingClientType;
+  }
+};
+
+export type ConfigCachingClientType = {
+  max_age: number;
+  s_max_age: number;
 };
 
 export type ConfigMemoryCachingSingleType = {

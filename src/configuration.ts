@@ -96,6 +96,18 @@ const CONFIG_VALIDATION_SCHEMA = Joi.object({
         }),
       }),
     ),
+    client: Joi.alternatives().try(
+      Joi.object({
+        enabled: Joi.boolean().valid(false),
+      }),
+      Joi.object({
+        enabled: Joi.boolean().valid(true),
+        options: Joi.object({
+          max_age: Joi.number().positive(),
+          s_max_age: Joi.number().positive(),
+        }),
+      }),
+    ),
   }),
 });
 

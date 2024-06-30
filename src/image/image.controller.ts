@@ -1,8 +1,9 @@
 import { Controller, Get, Headers, NotFoundException, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+import crypto from 'node:crypto';
 import { Public } from "../auth/public.decorator.js";
 import { ConfigService } from "@nestjs/config";
-import { ConfigNamingType } from "../types/config.type.js";
+import { ConfigCachingClientType, ConfigNamingType } from "../types/config.type.js";
 import { ImageService } from "./image.service.js";
 import { getFormatInfoByExtension, getFormatInfoByMimeType } from "../utils/format-info.utils.js";
 import sharp from "sharp";
@@ -47,8 +48,6 @@ export class ImageController {
     const { slug, preset_alias: presetAlias, ext, id } = matchedSlug.groups;
     const preferredMimeTypes = ext ? [getFormatInfoByExtension(ext).mimeType] : headers.accept.split(',').map(a => a.split(';')[0].trim());
 
-    const resolveCacheKey = JSON.stringify([slug, presetAlias, preferredMimeTypes, id]);
-
     let resolveInfo = await this.cacheService.getOrCreateCache(
       CacheType.ResolvePath,
       [id, slug, presetAlias, preferredMimeTypes.join('_')],
@@ -67,6 +66,9 @@ export class ImageController {
       }
     );
 
+    const clientCachingOptions = this.configService.get<ConfigCachingClientType>('caching.client.options');
+    const cacheControlHeader = `public, max-age=${Math.floor(clientCachingOptions.max_age / 1000)}, s-maxage=${Math.floor(clientCachingOptions.s_max_age / 1000)}, must-revalidate`;
+
     if (resolveInfo.imageCaches?.[0]?.path) {
       const cachePath = resolveInfo.imageCaches[0].path;
 
@@ -83,6 +85,7 @@ export class ImageController {
                 imageId: resolveInfo.imageCaches[0].value.image.id,
                 imagePresetId: resolveInfo.imageCaches[0].value.imagePreset.id,
                 mimeType: resolveInfo.imageCaches[0].value.mimeType,
+                md5: resolveInfo.imageCaches[0].value.md5,
               },
             },
           };
@@ -95,6 +98,8 @@ export class ImageController {
       res.set({
         'Content-Type': cachedData.meta.contentType,
         'Content-Length': cachedData.buffer.length,
+        'Cache-Control': cacheControlHeader,
+        'ETag': cachedData.meta.imageCache.md5,
       });
       res.send(cachedData.buffer);
 
@@ -121,6 +126,8 @@ export class ImageController {
     res.set({
       'Content-Type': preferredFormat.mimeType,
       'Content-Length': convertedImage.length,
+      'Cache-Control': cacheControlHeader,
+      'ETag': crypto.createHash('md5').update(convertedImage).digest('hex'),
     });
     res.send(convertedImage);
     res.end();
