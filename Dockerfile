@@ -13,15 +13,12 @@ FROM base AS deps
 
 ENV NODE_ENV production
 
-COPY .npmrc ./
-
 RUN npm ci
 
 
 # Build Dockerfile
 FROM base AS builder
 
-COPY .npmrc ./
 RUN npm ci
 
 COPY . ./
