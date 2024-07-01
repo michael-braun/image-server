@@ -19,7 +19,19 @@ const CONFIG_VALIDATION_SCHEMA = Joi.object({
           id: Joi.string().required(),
           username: Joi.string().required(),
           password: Joi.string().required(),
-          grants: Joi.array().items(
+        })
+      ),
+    }),
+  ),
+  uac: Joi.alternatives(
+    Joi.object({
+      type: Joi.string()
+        .valid('static')
+        .required(),
+      users: Joi.array().items(
+        Joi.object({
+          user_id: Joi.string().required(),
+          permissions: Joi.array().items(
             Joi.string()
               .valid('manage_images')
               .required(),

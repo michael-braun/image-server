@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IAuthService } from "../types/auth-service.type.js";
 import { ConfigService } from "@nestjs/config";
-import { ConfigStaticAuthType } from "../types/config.type.js";
+import { ConfigStaticAuthType, ConfigStaticUacType } from "../types/config.type.js";
 import { JwtService } from "@nestjs/jwt";
 import { Role } from "../auth/roles/role.enum.js";
 
@@ -31,15 +31,19 @@ export class StaticAuthService implements IAuthService {
   }
 
   async hasGrant(subjectId: string, grant: Role): Promise<boolean> {
-    const user = this.authConfig.users.find(user => user.id === subjectId);
+    const user = this.uacConfig.users.find(user => user.user_id === subjectId);
     if (!user) {
       return false;
     }
 
-    return user.grants.includes(grant);
+    return user.permissions.includes(grant);
   }
 
   private get authConfig(): ConfigStaticAuthType {
     return this.configService.get<ConfigStaticAuthType>('auth');
+  }
+
+  private get uacConfig(): ConfigStaticUacType {
+    return this.configService.get<ConfigStaticUacType>('uac');
   }
 }
