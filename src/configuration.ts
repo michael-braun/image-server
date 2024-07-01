@@ -66,14 +66,29 @@ const CONFIG_VALIDATION_SCHEMA = Joi.object({
       type: Joi.string().valid('cockroachdb').required(),
       host: Joi.string().required(),
       username: Joi.string().required(),
-      password: Joi.string().required(),
+      password: Joi.string(),
       database: Joi.string().required(),
       port: Joi.number(),
       ssl: Joi.object({
         rejectUnauthorized: Joi.boolean(),
-        ca: Joi.string(),
-        key: Joi.string(),
-        cert: Joi.string(),
+        ca: Joi.alternatives(
+          Joi.string(),
+          Joi.object({
+            path: Joi.string().required(),
+          })
+        ),
+        key: Joi.alternatives(
+          Joi.string(),
+          Joi.object({
+            path: Joi.string().required(),
+          })
+        ),
+        cert: Joi.alternatives(
+          Joi.string(),
+          Joi.object({
+            path: Joi.string().required(),
+          })
+        ),
       }),
     }),
   ),

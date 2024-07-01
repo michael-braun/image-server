@@ -66,11 +66,20 @@ type ConfigCockroachdbDatabaseType = {
   type: 'cockroachdb';
   host: string;
   username: string;
-  password: string;
+  password?: string;
   database: string;
   port?: number;
   ssl?: {
     rejectUnauthorized?: boolean;
+    ca?: string | {
+      path: string;
+    };
+    cert?: string | {
+      path: string;
+    };
+    key?: string | {
+      path: string;
+    };
   };
 };
 

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
+import { readFile } from "node:fs/promises";
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -18,7 +19,6 @@ import { fileURLToPath } from 'node:url';
 import { BaseTablesMigration } from "./database/migrations/1719665254677-base-tables.migration.js";
 import { TypeOrmModuleOptions } from "@nestjs/typeorm/dist/interfaces/typeorm-options.interface.js";
 import { ImageModule } from './image/image.module.js';
-import { Image } from "./database/entities/image.entity.js";
 import { ImagePreset } from "./database/entities/image-preset.entity.js";
 import { Repository } from "typeorm";
 import { CacheModule } from './cache/cache.module.js';
@@ -54,6 +54,41 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
         }
 
         if (databaseConfig.type === 'cockroachdb') {
+          let sslOptions: Partial<{
+            rejectUnauthorized: boolean;
+            ca: string | Buffer;
+            cert: string | Buffer;
+            key: string | Buffer;
+          }> = {};
+
+          if (databaseConfig.ssl.rejectUnauthorized === false) {
+            sslOptions.rejectUnauthorized = databaseConfig.ssl.rejectUnauthorized;
+          }
+
+          if (databaseConfig.ssl.ca) {
+            if (typeof databaseConfig.ssl.ca === 'string') {
+              sslOptions.ca = databaseConfig.ssl.ca;
+            } else {
+              sslOptions.ca = await readFile(databaseConfig.ssl.ca.path);
+            }
+          }
+
+          if (databaseConfig.ssl.cert) {
+            if (typeof databaseConfig.ssl.cert === 'string') {
+              sslOptions.cert = databaseConfig.ssl.cert;
+            } else {
+              sslOptions.cert = await readFile(databaseConfig.ssl.cert.path);
+            }
+          }
+
+          if (databaseConfig.ssl.key) {
+            if (typeof databaseConfig.ssl.key === 'string') {
+              sslOptions.key = databaseConfig.ssl.key;
+            } else {
+              sslOptions.key = await readFile(databaseConfig.ssl.key.path);
+            }
+          }
+
           return {
             type: databaseConfig.type,
             database: databaseConfig.database,
@@ -61,9 +96,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
             username: databaseConfig.username,
             password: databaseConfig.password,
             port: databaseConfig.port ?? 26257,
-            ssl: databaseConfig.ssl ? {
-              rejectUnauthorized: databaseConfig.ssl.rejectUnauthorized,
-            } : undefined,
+            ssl: databaseConfig.ssl ? sslOptions : undefined,
             ...baseConfig,
           } as TypeOrmModuleOptions;
         }
