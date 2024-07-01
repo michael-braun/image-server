@@ -13,12 +13,20 @@ FROM base AS deps
 
 ENV NODE_ENV production
 
+RUN apt-get update && \
+    apt-get install -y node-gyp && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 RUN npm ci --fetch-timeout=300000
 
 
 # Build Dockerfile
 FROM base AS builder
 
+RUN apt-get update && \
+    apt-get install -y node-gyp && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 RUN npm ci --fetch-timeout=300000
 
 COPY . ./
