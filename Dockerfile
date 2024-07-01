@@ -13,13 +13,13 @@ FROM base AS deps
 
 ENV NODE_ENV production
 
-RUN npm ci
+RUN npm ci --fetch-timeout=300000
 
 
 # Build Dockerfile
 FROM base AS builder
 
-RUN npm ci
+RUN npm ci --fetch-timeout=300000
 
 COPY . ./
 RUN npm run build
