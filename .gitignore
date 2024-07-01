@@ -335,3 +335,4 @@ $RECYCLE.BIN/
 /example-data/database.sqlite3
 /example-data/data
 /config/typeorm.js
+/config/certs
