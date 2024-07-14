@@ -10,6 +10,7 @@ import path, { dirname } from "node:path";
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import { getFormatInfoByMimeType } from "../utils/format-info.utils.js";
+import { ImagePreset } from "../database/entities/image-preset.entity.js";
 
 export type ResolveResponseType = {
   imagePath: string;
@@ -114,6 +115,15 @@ export class ImageService {
         .update(convertedImage)
         .digest('hex'),
       creationTime: cacheCreationTime,
+    });
+  }
+
+  async removeCached(image: Image, imagePreset: ImagePreset, mimeType: string, creationTime: Date) {
+    await this.imageCachesRepository.delete({
+      image,
+      imagePreset,
+      mimeType,
+      creationTime,
     });
   }
 

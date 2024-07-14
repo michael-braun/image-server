@@ -10,6 +10,7 @@ import sharp from "sharp";
 import fs from 'node:fs/promises';
 import { CacheService } from "../cache/cache.service.js";
 import { CacheType } from "../cache/cache.enum.js";
+import { runInBackground } from "../utils/run-in-background.utils.js";
 
 
 @Controller('images')
@@ -72,38 +73,61 @@ export class ImageController {
     if (resolveInfo.imageCaches?.[0]?.path) {
       const cachePath = resolveInfo.imageCaches[0].path;
 
-      const cachedData = await this.cacheService.getOrCreateCache(
-        CacheType.ImageData,
-        [cachePath],
-        async () => {
-          const imageBuffer = await fs.readFile(cachePath);
-          return {
-            buffer: imageBuffer,
-            meta: {
-              contentType: resolveInfo.imageCaches[0].value.mimeType,
-              imageCache: {
-                imageId: resolveInfo.imageCaches[0].value.image.id,
-                imagePresetId: resolveInfo.imageCaches[0].value.imagePreset.id,
-                mimeType: resolveInfo.imageCaches[0].value.mimeType,
-                md5: resolveInfo.imageCaches[0].value.md5,
+      try {
+        const cachedData = await this.cacheService.getOrCreateCache(
+          CacheType.ImageData,
+          [cachePath],
+          async () => {
+            const imageBuffer = await fs.readFile(cachePath);
+            return {
+              buffer: imageBuffer,
+              meta: {
+                contentType: resolveInfo.imageCaches[0].value.mimeType,
+                imageCache: {
+                  imageId: resolveInfo.imageCaches[0].value.image.id,
+                  imagePresetId: resolveInfo.imageCaches[0].value.imagePreset.id,
+                  mimeType: resolveInfo.imageCaches[0].value.mimeType,
+                  md5: resolveInfo.imageCaches[0].value.md5,
+                },
               },
-            },
-          };
-        },
-        {
-          calculateSize: (value) => value.buffer.length + JSON.stringify(value.meta).length,
+            };
+          },
+          {
+            calculateSize: (value) => value.buffer.length + JSON.stringify(value.meta).length,
+          }
+        );
+
+        res.set({
+          'Content-Type': cachedData.meta.contentType,
+          'Content-Length': cachedData.buffer.length,
+          'Cache-Control': cacheControlHeader,
+          'ETag': cachedData.meta.imageCache.md5,
+        });
+        res.send(cachedData.buffer);
+
+        return;
+      } catch (error: any) {
+        const cacheInfo = {
+          image: resolveInfo.image.id,
+          imagePreset: resolveInfo.preset.alias,
+          mimeType: resolveInfo.imageCaches[0].value.mimeType,
+        };
+
+        if (error.code === 'ENOENT') {
+          console.error('cached image not found', cacheInfo);
+
+          runInBackground(async () => {
+            await this.imageService.removeCached(
+              resolveInfo.imageCaches[0].value.image,
+              resolveInfo.imageCaches[0].value.imagePreset,
+              resolveInfo.imageCaches[0].value.mimeType,
+              resolveInfo.imageCaches[0].value.creationTime,
+            ).catch((ex) => console.error('error while removing cached image', ex, cacheInfo));
+          });
         }
-      );
 
-      res.set({
-        'Content-Type': cachedData.meta.contentType,
-        'Content-Length': cachedData.buffer.length,
-        'Cache-Control': cacheControlHeader,
-        'ETag': cachedData.meta.imageCache.md5,
-      });
-      res.send(cachedData.buffer);
-
-      return;
+        console.error('error while reading cached image', error, cacheInfo);
+      }
     }
 
     const fileContent = await fs.readFile(resolveInfo.imagePath);
