@@ -47,7 +47,7 @@ const CONFIG_VALIDATION_SCHEMA = Joi.object({
         width: Joi.number().required(),
         height: Joi.number().required(),
         algorithm: Joi.string()
-          .valid('contain')
+          .valid('contain', 'cover', 'inside', 'outside')
           .required(),
         conversion: Joi.string()
           .valid('on_demand')

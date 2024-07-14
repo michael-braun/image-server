@@ -1,7 +1,10 @@
 import { Role } from "../auth/roles/role.enum.js";
 
 enum ImageSizingAlgorithm {
-  contain = 'contain'
+  contain = 'contain',
+  cover = 'cover',
+  inside = 'inside',
+  outside = 'outside',
 }
 
 enum ImageConversion {
