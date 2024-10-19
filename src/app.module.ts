@@ -4,7 +4,6 @@ import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 import { readFile } from "node:fs/promises";
 
 import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { StaticAuthModule } from './static-auth/static-auth.module.js';
 import { AdminModule } from './admin/admin.module.js';
@@ -109,7 +108,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
   ],
   controllers: [AppController],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

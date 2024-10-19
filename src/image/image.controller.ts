@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, NotFoundException, Req, Res } from '@nestjs/common';
+import { Controller, Get, Headers, NotFoundException, Param, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import crypto from 'node:crypto';
 import { Public } from "../auth/public.decorator.js";
@@ -11,9 +11,13 @@ import fs from 'node:fs/promises';
 import { CacheService } from "../cache/cache.service.js";
 import { CacheType } from "../cache/cache.enum.js";
 import { runInBackground } from "../utils/run-in-background.utils.js";
+import { ApiParam, ApiTags } from "@nestjs/swagger";
 
-
-@Controller('images')
+@ApiTags('images')
+@Controller({
+  path: 'images',
+  version: '1',
+})
 export class ImageController {
   constructor(
     private readonly configService: ConfigService,
@@ -24,12 +28,17 @@ export class ImageController {
 
   @Public()
   @Get('*')
+  @ApiParam({
+    name: '*',
+    required: true,
+    format: 'path',
+  })
   public async getImage(
-    @Req() req: Request,
     @Headers() headers,
     @Res() res: Response,
+    @Param() params: string[],
   ) {
-    const rawSlug = req.params[0];
+    const rawSlug = params[0];
 
     const namingOptions = this.configService.get<ConfigNamingType>('naming');
     const convertedPath = namingOptions.path

@@ -2,8 +2,21 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards, Request }
 import { AuthService } from "./auth.service.js";
 import { AuthGuard } from "./auth.guard.js";
 import { Public } from "./public.decorator.js";
+import { ApiBearerAuth, ApiProperty, ApiTags } from "@nestjs/swagger";
 
-@Controller('auth')
+class SignInDto {
+  @ApiProperty()
+  username: string;
+
+  @ApiProperty()
+  password: string;
+}
+
+@ApiTags('auth')
+@Controller({
+  path: 'auth',
+  version: '1',
+})
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -13,12 +26,13 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: Record<string, any>) {
+  signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
   @UseGuards(AuthGuard)
   @Get('profile')
+  @ApiBearerAuth()
   getProfile(@Request() req) {
     return req.user;
   }

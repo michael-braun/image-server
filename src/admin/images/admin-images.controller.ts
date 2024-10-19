@@ -5,8 +5,14 @@ import { Role } from "../../auth/roles/role.enum.js";
 import { AuthGuard } from "../../auth/auth.guard.js";
 import { AdminImagesService } from "./admin-images.service.js";
 import { Image } from "../../database/entities/image.entity.js";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
-@Controller('admin/images')
+@ApiTags('admin')
+@Controller({
+  path: 'admin/images',
+  version: '1',
+})
+@ApiBearerAuth()
 export class AdminImagesController {
   constructor(private readonly adminImagesService: AdminImagesService) {
   }
