@@ -10,6 +10,8 @@ async function bootstrap() {
     rawBody: true,
   });
 
+  app.enableCors();
+
   app.enableVersioning({
     type: VersioningType.URI,
   });
