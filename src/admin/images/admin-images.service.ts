@@ -45,13 +45,15 @@ export class AdminImagesService {
       remove: /[^\w\s$*_+~.()'"!\-:@\/]+/g,
     }) : undefined;
 
-    const slugExists = await this.slugsRepository.exists({
-      where: {
-        slug,
-      },
-    });
-    if (slugExists) {
-      throw new ConflictException('slug already exists');
+    if (options.path) {
+      const slugExists = await this.slugsRepository.exists({
+        where: {
+          slug,
+        },
+      });
+      if (slugExists) {
+        throw new ConflictException('slug already exists');
+      }
     }
 
     const basePath = this.getImageDirectory(creationTime);
