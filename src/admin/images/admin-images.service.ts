@@ -28,6 +28,15 @@ export class AdminImagesService {
     return this.imagesRepository.find();
   }
 
+
+  async getById(id: string) {
+    return this.imagesRepository.findOne({
+      where: {
+        id,
+      },
+    });
+  }
+
   async upload(request: Request, options: { path?: string; }) {
     const id = crypto.randomUUID();
     const creationTime = new Date(Date.now());

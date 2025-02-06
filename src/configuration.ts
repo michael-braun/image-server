@@ -7,22 +7,6 @@ import { ConfigType } from "./types/config.type.js";
 const YAML_CONFIG_FILENAME = 'config.yaml';
 
 const CONFIG_VALIDATION_SCHEMA = Joi.object({
-  auth: Joi.alternatives(
-    Joi.object({
-      type: Joi.string()
-        .valid('static')
-        .required(),
-      secret: Joi.string()
-        .required(),
-      users: Joi.array().items(
-        Joi.object({
-          id: Joi.string().required(),
-          username: Joi.string().required(),
-          password: Joi.string().required(),
-        })
-      ),
-    }),
-  ),
   uac: Joi.alternatives(
     Joi.object({
       type: Joi.string()
@@ -149,7 +133,7 @@ export default () => {
     ...config.storage,
   };
 
-  const valid = CONFIG_VALIDATION_SCHEMA.validate(config, { abortEarly: false, });
+  const valid = CONFIG_VALIDATION_SCHEMA.validate(config, { abortEarly: false, allowUnknown: true });
   if (valid.error) {
     console.error('error while validating config', valid.error.details);
     throw new Error('invalid config');

@@ -15,6 +15,7 @@ import { CacheModule } from "../cache/cache.module.js";
     CacheModule,
   ],
   providers: [ImageService],
+  exports: [ImageService],
   controllers: [ImageController]
 })
 export class ImageModule {}

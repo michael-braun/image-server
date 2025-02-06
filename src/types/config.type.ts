@@ -1,4 +1,4 @@
-import { Role } from "../auth/roles/role.enum.js";
+import { Role } from "../fsarch/auth/role.enum.js";
 
 enum ImageSizingAlgorithm {
   contain = 'contain',

@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, appendFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 
 const IMAGE_SERVER_BASE_URL = process.env.IMAGE_SERVER_BASE_URL;
@@ -7,7 +7,7 @@ async function getToken() {
     const username = process.env.USERNAME;
     const password = process.env.PASSWORD;
 
-    const loginRes = await fetch(`${IMAGE_SERVER_BASE_URL}/auth/login`, {
+    const loginRes = await fetch(`${IMAGE_SERVER_BASE_URL}/v1/auth/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -19,6 +19,7 @@ async function getToken() {
     });
 
     if (!loginRes.ok) {
+        console.error(loginRes.status);
         throw new Error('could not login');
     }
 
@@ -40,6 +41,7 @@ for (let url of urls) {
         const fileResponse = await fetch(url[0]);
 
         if (!fileResponse.ok) {
+            console.log(fileResponse.status);
             throw new Error('unknown file');
         }
 
@@ -47,7 +49,7 @@ for (let url of urls) {
 
         const token = await getToken();
 
-        const uploadResponse = await fetch(`${IMAGE_SERVER_BASE_URL}/admin/images/_actions/upload`, {
+        const uploadResponse = await fetch(`${IMAGE_SERVER_BASE_URL}/v1/admin/images/_actions/upload`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -59,6 +61,12 @@ for (let url of urls) {
         if (!uploadResponse.ok) {
             throw new Error(`could not upload image: ${uploadResponse.status}`);
         }
+
+        const data = await uploadResponse.json();
+
+        await appendFile('uploads.csv', `${url[0]};${uploadPath};${data.id}\n`, {
+            flag: 'a',
+        });
     } catch (error) {
         console.error(`error while processing ${url}`, {
             error,

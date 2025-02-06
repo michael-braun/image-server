@@ -1,12 +1,13 @@
 auth:
+  type: 'jwt-jwk'
+  jwkUrl: 'https://login.vb3d.de/realms/VB3D-Dev/protocol/openid-connect/certs'
+uac:
   type: 'static'
-  secret: '380bdc8fZ97edh49fblb97fp609n55dc70ae'
   users:
-    - id: '86f01463-2952-4a7c-8d81-094561d110f0'
-      username: admin
-      password: admin
-      grants:
+    - user_id: '86f01463-2952-4a7c-8d81-094561d110f0'
+      permissions:
         - manage_images
+
 images:
   presets:
     - alias: small
@@ -40,13 +41,39 @@ images:
       conversion: on_demand
       cached: true
 
+#database:
+#  type: sqlite
+#  database: ./example-data/database.sqlite3
+
 database:
-  type: sqlite
-  database: ./example-data/database.sqlite3
+  type: cockroachdb
+  host: '10.0.4.13'
+  username: dev_image-server
+  password: '123456'
+  database: dev_image-server
+  ssl:
+    rejectUnauthorized: false
+    ca:
+      path: ./config/certs/dev/ca.crt
+
+
+#database:
+#  type: cockroachdb
+#  host: '127.0.0.1'
+#  username: image-server
+#  database: image-server
+#  ssl:
+#    rejectUnauthorized: false
+#    ca:
+#      path: ./config/certs/ca.crt
+#    key:
+#      path: ./config/certs/tls.key
+#    cert:
+#      path: ./config/certs/tls.crt
 
 naming:
   type: named
-  path: '##name##_##preset_alias##.##ext##'
+  path: '##id##_##preset_alias##.##ext##'
 
 storage:
 

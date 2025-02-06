@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 import { StaticAuthService } from './static-auth.service.js';
-import { JwtModule } from "@nestjs/jwt";
-import { ConfigService } from "@nestjs/config";
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { ModuleConfiguration } from "../../configuration/module/module-configuration.module.js";
 
 @Module({
   imports: [
@@ -15,9 +16,11 @@ import { ConfigService } from "@nestjs/config";
       }),
       inject: [ConfigService],
     }),
+    ModuleConfiguration.register('AUTH_CONFIG', {
+      name: 'auth',
+    }),
   ],
   providers: [StaticAuthService],
   exports: [StaticAuthService],
 })
-export class StaticAuthModule {
-}
+export class StaticAuthModule {}

@@ -1,10 +1,9 @@
 import { Controller, Get, Headers, NotFoundException, Param, Req, Res } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import crypto from 'node:crypto';
-import { Public } from "../auth/public.decorator.js";
 import { ConfigService } from "@nestjs/config";
 import { ConfigCachingClientType, ConfigNamingType } from "../types/config.type.js";
-import { ImageService } from "./image.service.js";
+import { ImageService, ResolveResponseType } from "./image.service.js";
 import { getFormatInfoByExtension, getFormatInfoByMimeType } from "../utils/format-info.utils.js";
 import sharp from "sharp";
 import fs from 'node:fs/promises';
@@ -12,6 +11,7 @@ import { CacheService } from "../cache/cache.service.js";
 import { CacheType } from "../cache/cache.enum.js";
 import { runInBackground } from "../utils/run-in-background.utils.js";
 import { ApiParam, ApiTags } from "@nestjs/swagger";
+import { Public } from "../fsarch/auth/decorators/public.decorator.js";
 
 @ApiTags('images')
 @Controller({
@@ -26,56 +26,11 @@ export class ImageController {
   ) {
   }
 
-  @Public()
-  @Get('*')
-  @ApiParam({
-    name: '*',
-    required: true,
-    format: 'path',
-  })
-  public async getImage(
-    @Headers() headers,
-    @Res() res: Response,
-    @Param() params: string[],
+  private async getBaseImage(
+    res: Response,
+    resolveInfo: ResolveResponseType,
+    preferredMimeTypes: Array<string>,
   ) {
-    const rawSlug = params[0];
-
-    const namingOptions = this.configService.get<ConfigNamingType>('naming');
-    const convertedPath = namingOptions.path
-      .replaceAll('/', '\\/')
-      .replaceAll('.', '\\.')
-      .replace('##id##', '(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})')
-      .replace('##preset_alias##', '(?<preset_alias>[^/]+)')
-      .replace('##ext##', '(?<ext>[A-Za-z0-9]+)')
-      .replace('##name##', '(?<slug>.*)');
-
-    const regex = new RegExp('^' + convertedPath + '$');
-    const matchedSlug = rawSlug.match(regex);
-    if (!matchedSlug) {
-      throw new NotFoundException();
-    }
-
-    const { slug, preset_alias: presetAlias, ext, id } = matchedSlug.groups;
-    const preferredMimeTypes = ext ? [getFormatInfoByExtension(ext).mimeType] : headers.accept.split(',').map(a => a.split(';')[0].trim());
-
-    let resolveInfo = await this.cacheService.getOrCreateCache(
-      CacheType.ResolvePath,
-      [id, slug, presetAlias, preferredMimeTypes.join('_')],
-      async () => {
-        return await this.imageService.resolveImage({
-          slug,
-          presetAlias,
-          id,
-          preferredMimeTypes: preferredMimeTypes,
-        });
-      },
-      {
-        calculateSize: (value) => {
-          return JSON.stringify(value).length;
-        },
-      }
-    );
-
     const clientCachingOptions = this.configService.get<ConfigCachingClientType>('caching.client.options');
     const cacheControlHeader = `public, max-age=${Math.floor(clientCachingOptions.max_age / 1000)}, s-maxage=${Math.floor(clientCachingOptions.s_max_age / 1000)}, must-revalidate`;
 
@@ -141,7 +96,15 @@ export class ImageController {
 
     const fileContent = await fs.readFile(resolveInfo.imagePath);
 
-    const preferredFormat = getFormatInfoByMimeType(preferredMimeTypes[0]);
+    const preferredFormat = preferredMimeTypes
+      .map((preferredMimeType) => {
+        try {
+          return getFormatInfoByMimeType(preferredMimeType);
+        } catch {
+          return null;
+        }
+      })
+      .find(a => a);
 
     const convertedImage = await sharp(fileContent)
       .resize({
@@ -164,5 +127,99 @@ export class ImageController {
     });
     res.send(convertedImage);
     res.end();
+  }
+
+
+  @Public()
+  @Get('resolve/*')
+  @ApiParam({
+    name: '*',
+    required: true,
+    format: 'path',
+  })
+  public async getImage(
+    @Headers() headers,
+    @Res() res: Response,
+    @Param() params: string[],
+  ) {
+    const rawSlug = params[0];
+
+    const namingOptions = this.configService.get<ConfigNamingType>('naming');
+    const convertedPath = namingOptions.path
+      .replaceAll('/', '\\/')
+      .replaceAll('.', '\\.')
+      .replace('##id##', '(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})')
+      .replace('##preset_alias##', '(?<preset_alias>[^/]+)')
+      .replace('##ext##', '(?<ext>[A-Za-z0-9]+)')
+      .replace('##name##', '(?<slug>.*)');
+
+    const regex = new RegExp('^' + convertedPath + '$');
+    const matchedSlug = rawSlug.match(regex);
+    if (!matchedSlug) {
+      throw new NotFoundException();
+    }
+
+    const { slug, preset_alias: presetAlias, ext, id } = matchedSlug.groups;
+    const preferredMimeTypes = ext ? [getFormatInfoByExtension(ext).mimeType] : headers.accept.split(',').map(a => a.split(';')[0].trim());
+
+    let resolveInfo = await this.cacheService.getOrCreateCache(
+      CacheType.ResolvePath,
+      [id, slug, presetAlias, preferredMimeTypes.join('_')],
+      async () => {
+        return await this.imageService.resolveImage({
+          slug,
+          presetAlias,
+          id,
+          preferredMimeTypes: preferredMimeTypes,
+        });
+      },
+      {
+        calculateSize: (value) => {
+          return JSON.stringify(value).length;
+        },
+      }
+    );
+
+    await this.getBaseImage(res, resolveInfo, preferredMimeTypes)
+  }
+
+  @Public()
+  @Get(':id/presets/:presetAlias')
+  @ApiParam({
+    name: 'id',
+    required: true,
+    format: 'path',
+  })
+  @ApiParam({
+    name: 'presetAlias',
+    required: true,
+    format: 'path',
+  })
+  public async getImageById(
+    @Headers() headers,
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Param('presetAlias') presetAlias: string,
+  ) {
+    const preferredMimeTypes = headers.accept.split(',').map(a => a.split(';')[0].trim());
+
+    let resolveInfo = await this.cacheService.getOrCreateCache(
+      CacheType.ResolvePath,
+      [id, '', presetAlias, preferredMimeTypes.join('_')],
+      async () => {
+        return await this.imageService.resolveImage({
+          presetAlias,
+          id,
+          preferredMimeTypes: preferredMimeTypes,
+        });
+      },
+      {
+        calculateSize: (value) => {
+          return JSON.stringify(value).length;
+        },
+      }
+    );
+
+    await this.getBaseImage(res, resolveInfo, preferredMimeTypes)
   }
 }

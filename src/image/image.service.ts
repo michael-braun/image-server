@@ -127,7 +127,7 @@ export class ImageService {
     });
   }
 
-  private getImageDirectory(creationTime: Date) {
+  public getImageDirectory(creationTime: Date) {
     const year = creationTime.getUTCFullYear();
     const month = creationTime.getUTCMonth();
     const day = creationTime.getUTCDate();
