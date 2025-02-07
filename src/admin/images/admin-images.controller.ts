@@ -61,7 +61,7 @@ export class AdminImagesController {
   @Roles(Role.manage_images)
   public async getRawImage(
     @Res() res: Response,
-    @Param('id') id: string,
+    @Param('imageId') id: string,
   ): Promise<void> {
     const image = await this.adminImagesService.getById(id);
 
@@ -69,20 +69,10 @@ export class AdminImagesController {
 
     const fileContent = await fs.readFile(filePath);
 
-    /*
-    const convertedImage = await sharp(fileContent)
-      .resize({
-        width: resolveInfo.preset.width,
-        height: resolveInfo.preset.height,
-        fit: resolveInfo.preset.algorithm,
-      })
-      .toFormat(preferredFormat.sharpFormat)
-      .toBuffer();*/
-
     res.set({
       'Content-Type': image.mimeType,
       'Content-Length': fileContent.length,
-      'Cache-Control': 'private, max-age=0',
+      'Cache-Control': 'private, no-cache, no-store, must-revalidate',
       'ETag': image.md5,
     });
     res.send(fileContent);
