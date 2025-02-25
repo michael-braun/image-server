@@ -49,7 +49,7 @@ export class DatabaseModule {
               } as TypeOrmModuleOptions;
             }
 
-            if (databaseConfig.type === 'cockroachdb') {
+            if (databaseConfig.type === 'cockroachdb' || databaseConfig.type === 'postgres') {
               const sslOptions: Partial<{
                 rejectUnauthorized: boolean;
                 ca: string | Buffer;
@@ -57,34 +57,36 @@ export class DatabaseModule {
                 key: string | Buffer;
               }> = {};
 
-              if (databaseConfig.ssl.rejectUnauthorized === false) {
-                sslOptions.rejectUnauthorized =
-                  databaseConfig.ssl.rejectUnauthorized;
-              }
-
-              if (databaseConfig.ssl.ca) {
-                if (typeof databaseConfig.ssl.ca === 'string') {
-                  sslOptions.ca = databaseConfig.ssl.ca;
-                } else {
-                  sslOptions.ca = await readFile(databaseConfig.ssl.ca.path);
+              if (databaseConfig.ssl) {
+                if (databaseConfig.ssl.rejectUnauthorized === false) {
+                  sslOptions.rejectUnauthorized =
+                    databaseConfig.ssl.rejectUnauthorized;
                 }
-              }
 
-              if (databaseConfig.ssl.cert) {
-                if (typeof databaseConfig.ssl.cert === 'string') {
-                  sslOptions.cert = databaseConfig.ssl.cert;
-                } else {
-                  sslOptions.cert = await readFile(
-                    databaseConfig.ssl.cert.path,
-                  );
+                if (databaseConfig.ssl.ca) {
+                  if (typeof databaseConfig.ssl.ca === 'string') {
+                    sslOptions.ca = databaseConfig.ssl.ca;
+                  } else {
+                    sslOptions.ca = await readFile(databaseConfig.ssl.ca.path);
+                  }
                 }
-              }
 
-              if (databaseConfig.ssl.key) {
-                if (typeof databaseConfig.ssl.key === 'string') {
-                  sslOptions.key = databaseConfig.ssl.key;
-                } else {
-                  sslOptions.key = await readFile(databaseConfig.ssl.key.path);
+                if (databaseConfig.ssl.cert) {
+                  if (typeof databaseConfig.ssl.cert === 'string') {
+                    sslOptions.cert = databaseConfig.ssl.cert;
+                  } else {
+                    sslOptions.cert = await readFile(
+                      databaseConfig.ssl.cert.path,
+                    );
+                  }
+                }
+
+                if (databaseConfig.ssl.key) {
+                  if (typeof databaseConfig.ssl.key === 'string') {
+                    sslOptions.key = databaseConfig.ssl.key;
+                  } else {
+                    sslOptions.key = await readFile(databaseConfig.ssl.key.path);
+                  }
                 }
               }
 

@@ -45,7 +45,7 @@ type ConfigSqliteDatabaseType = {
 };
 
 type ConfigCockroachdbDatabaseType = {
-  type: 'cockroachdb';
+  type: 'cockroachdb' | 'postgres';
   host: string;
   username: string;
   password?: string;
