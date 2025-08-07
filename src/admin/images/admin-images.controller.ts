@@ -63,7 +63,7 @@ export class AdminImagesController {
   public async getRawImage(
     @Res() res: Response,
     @Param('imageId') id: string,
-    @Query('size') size?: number,
+    @Query('size') size?: string,
   ): Promise<void> {
     const image = await this.adminImagesService.getById(id);
 
@@ -71,11 +71,13 @@ export class AdminImagesController {
 
     let fileContent = await fs.readFile(filePath);
 
-    if (size) {
+    if (size && !isNaN(parseInt(size, 10))) {
+      const sizeNumber = parseInt(size, 10);
+
       fileContent = await sharp(fileContent)
         .resize({
-          width: size,
-          height: size,
+          width: sizeNumber,
+          height: sizeNumber,
           fit: 'cover',
         })
         .toFormat(getFormatInfoByMimeType('image/png')?.sharpFormat)
