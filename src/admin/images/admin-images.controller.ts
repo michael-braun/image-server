@@ -14,6 +14,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { getFormatInfoByMimeType } from "../../utils/format-info.utils.js";
 import { ImageService } from "../../image/image.service.js";
+import sharp from "sharp";
 
 @ApiTags('admin')
 @Controller({
@@ -62,18 +63,29 @@ export class AdminImagesController {
   public async getRawImage(
     @Res() res: Response,
     @Param('imageId') id: string,
+    @Query('size') size?: number,
   ): Promise<void> {
     const image = await this.adminImagesService.getById(id);
 
     const filePath = path.resolve(this.imageService.getImageDirectory(image.creationTime), `${image.id}.${getFormatInfoByMimeType(image.mimeType).extension}`);
 
-    const fileContent = await fs.readFile(filePath);
+    let fileContent = await fs.readFile(filePath);
+
+    if (size) {
+      fileContent = await sharp(fileContent)
+        .resize({
+          width: size,
+          height: size,
+          fit: 'cover',
+        })
+        .toFormat(getFormatInfoByMimeType('image/png')?.sharpFormat)
+        .toBuffer()
+    }
 
     res.set({
       'Content-Type': image.mimeType,
       'Content-Length': fileContent.length,
       'Cache-Control': 'private, no-cache, no-store, must-revalidate',
-      'ETag': image.md5,
     });
     res.send(fileContent);
     res.end();
