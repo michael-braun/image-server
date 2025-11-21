@@ -2,30 +2,35 @@ import { readFile, appendFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 
 const IMAGE_SERVER_BASE_URL = process.env.IMAGE_SERVER_BASE_URL;
+const OAUTH_TOKEN_URL = process.env.OAUTH_TOKEN_URL;
 
 async function getToken() {
     const username = process.env.USERNAME;
     const password = process.env.PASSWORD;
+    const client_id = process.env.OAUTH_CLIENT_ID;
+    const client_secret = process.env.OAUTH_CLIENT_SECRET;
 
-    const loginRes = await fetch(`${IMAGE_SERVER_BASE_URL}/v1/auth/login`, {
+    const urlSearchParams = new URLSearchParams({
+        username,
+        password,
+        grant_type: 'password',
+        client_id,
+        client_secret,
+    });
+
+    const loginRes = await fetch(`${OAUTH_TOKEN_URL}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username,
-            password,
-        }),
+        body: urlSearchParams,
     });
 
     if (!loginRes.ok) {
-        console.error(loginRes.status);
+        console.error(loginRes.status, await loginRes.text());
         throw new Error('could not login');
     }
 
     const loginData = await loginRes.json();
 
-    return loginData.accessToken;
+    return loginData.access_token;
 }
 
 const urls = (await readFile('./urls.csv', 'utf-8')).split('\n').map(r => r.split(';'));

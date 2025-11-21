@@ -41,20 +41,20 @@ images:
       conversion: on_demand
       cached: true
 
-#database:
-#  type: sqlite
-#  database: ./example-data/database.sqlite3
-
 database:
-  type: cockroachdb
-  host: '10.0.4.13'
-  username: dev_image-server
-  password: '123456'
-  database: dev_image-server
-  ssl:
-    rejectUnauthorized: false
-    ca:
-      path: ./config/certs/dev/ca.crt
+  type: sqlite
+  database: ./example-data/database.sqlite3
+
+#database:
+#  type: cockroachdb
+#  host: '10.0.4.13'
+#  username: dev_image-server
+#  password: '123456'
+#  database: dev_image-server
+#  ssl:
+#    rejectUnauthorized: false
+#    ca:
+#      path: ./config/certs/dev/ca.crt
 
 
 #database:
@@ -76,6 +76,7 @@ naming:
   path: '##id##_##preset_alias##.##ext##'
 
 storage:
+  data: ./example-data/data
 
 caching:
   memory:

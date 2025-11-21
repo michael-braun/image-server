@@ -69,12 +69,12 @@ export class AdminImagesController {
 
     const filePath = path.resolve(this.imageService.getImageDirectory(image.creationTime), `${image.id}.${getFormatInfoByMimeType(image.mimeType).extension}`);
 
-    let fileContent = await fs.readFile(filePath);
+    let fileContent: Uint8Array = new Uint8Array(await fs.readFile(filePath));
 
     if (size && !isNaN(parseInt(size, 10))) {
       const sizeNumber = parseInt(size, 10);
 
-      fileContent = await sharp(fileContent)
+      fileContent = new Uint8Array(await sharp(fileContent)
         .resize({
           width: sizeNumber,
           height: sizeNumber,
@@ -82,6 +82,7 @@ export class AdminImagesController {
         })
         .toFormat(getFormatInfoByMimeType('image/png')?.sharpFormat)
         .toBuffer()
+      );
     }
 
     res.set({
