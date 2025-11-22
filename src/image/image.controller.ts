@@ -140,10 +140,10 @@ export class ImageController {
   public async getImage(
     @Headers() headers,
     @Res() res: Response,
-    @Param() params: { slug: string },
+    @Param() params: { slug: Array<string> },
   ) {
     console.log('params', params, params.slug[0]);
-    const rawSlug = params.slug?.[0];
+    const rawSlug = params.slug?.join('/');
 
     const namingOptions = this.configService.get<ConfigNamingType>('naming');
     const convertedPath = namingOptions.path
