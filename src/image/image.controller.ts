@@ -133,7 +133,7 @@ export class ImageController {
   @Public()
   @Get('resolve/*slug')
   @ApiParam({
-    name: '*',
+    name: 'slug',
     required: true,
     format: 'path',
   })
@@ -142,7 +142,8 @@ export class ImageController {
     @Res() res: Response,
     @Param() params: { slug: string },
   ) {
-    const rawSlug = params.slug;
+    console.log('params', params, params.slug[0]);
+    const rawSlug = params.slug?.[0];
 
     const namingOptions = this.configService.get<ConfigNamingType>('naming');
     const convertedPath = namingOptions.path
