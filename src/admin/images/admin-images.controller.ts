@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseGuards, Headers, Req, Param, Query, Res } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Headers, Req, Param, Query, Res, NotFoundException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AdminImagesService } from "./admin-images.service.js";
 import { Image } from "../../database/entities/image.entity.js";
@@ -103,5 +103,20 @@ export class AdminImagesController {
     return await this.adminImagesService.upload(request, {
       path,
     });
+  }
+
+
+  @Get(':imageId')
+  @UseGuards(AuthGuard)
+  @Roles(Role.manage_images)
+  public async Delete(
+    @Param('imageId') id: string,
+  ): Promise<void> {
+    const image = await this.adminImagesService.getById(id);
+    if (!image) {
+      throw new NotFoundException();
+    }
+
+    await this.adminImagesService.remove(image.id);
   }
 }

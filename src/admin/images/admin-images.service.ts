@@ -28,6 +28,11 @@ export class AdminImagesService {
     return this.imagesRepository.find();
   }
 
+  async remove(id: string) {
+    return this.imagesRepository.softDelete({
+      id,
+    });
+  }
 
   async getById(id: string) {
     return this.imagesRepository.findOne({
